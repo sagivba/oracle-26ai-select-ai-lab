@@ -1,0 +1,759 @@
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT =========================================================
+=========================================================
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT DATA VALIDATION AND BASELINE QUERIES FOR BUDGET SCHEMA
+DATA VALIDATION AND BASELINE QUERIES FOR BUDGET SCHEMA
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT =========================================================
+=========================================================
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === SESSION CONTEXT ===
+=== SESSION CONTEXT ===
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SHOW USER
+USER is "SYSTEM"
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT SYS_CONTEXT('USERENV','CURRENT_SCHEMA') AS CURRENT_SCHEMA FROM DUAL;
+
+CURRENT_SCHEMA
+_________________
+BUDGET
+
+1 row selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> ALTER SESSION SET CURRENT_SCHEMA = BUDGET;
+
+Session altered.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === SESSION CONTEXT AFTER ALTER SESSION ===
+=== SESSION CONTEXT AFTER ALTER SESSION ===
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SHOW USER
+USER is "SYSTEM"
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT SYS_CONTEXT('USERENV','CURRENT_SCHEMA') AS CURRENT_SCHEMA FROM DUAL;
+
+CURRENT_SCHEMA
+_________________
+BUDGET
+
+1 row selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === OBJECT EXISTENCE CHECK ===
+=== OBJECT EXISTENCE CHECK ===
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> COLUMN OBJECT_NAME FORMAT A30
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> COLUMN OBJECT_TYPE FORMAT A20
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT OBJECT_NAME, OBJECT_TYPE, STATUS
+  2  FROM ALL_OBJECTS
+  3  WHERE OWNER = 'BUDGET'
+  4  AND OBJECT_NAME IN (
+  5      'ORG_UNITS',
+  6      'COST_CENTERS',
+  7      'BUDGET_PERIODS',
+  8      'EXPENSE_CATEGORIES',
+  9      'BUDGET_ALLOCATIONS',
+ 10      'ACTUAL_EXPENSES',
+ 11      'VW_BUDGET_VS_ACTUAL'
+ 12  )
+ 13  ORDER BY OBJECT_TYPE, OBJECT_NAME;
+
+OBJECT_NAME            OBJECT_TYPE    STATUS
+______________________ ______________ _________
+ACTUAL_EXPENSES        TABLE          VALID
+BUDGET_ALLOCATIONS     TABLE          VALID
+BUDGET_PERIODS         TABLE          VALID
+COST_CENTERS           TABLE          VALID
+EXPENSE_CATEGORIES     TABLE          VALID
+ORG_UNITS              TABLE          VALID
+VW_BUDGET_VS_ACTUAL    VIEW           VALID
+
+7 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === ROW COUNTS ===
+=== ROW COUNTS ===
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT 'ORG_UNITS' AS TABLE_NAME, COUNT(*) AS ROW_COUNT FROM ORG_UNITS
+  2  UNION ALL
+  3  SELECT 'COST_CENTERS', COUNT(*) FROM COST_CENTERS
+  4  UNION ALL
+  5  SELECT 'BUDGET_PERIODS', COUNT(*) FROM BUDGET_PERIODS
+  6  UNION ALL
+  7  SELECT 'EXPENSE_CATEGORIES', COUNT(*) FROM EXPENSE_CATEGORIES
+  8  UNION ALL
+  9  SELECT 'BUDGET_ALLOCATIONS', COUNT(*) FROM BUDGET_ALLOCATIONS
+ 10  UNION ALL
+ 11  SELECT 'ACTUAL_EXPENSES', COUNT(*) FROM ACTUAL_EXPENSES;
+
+TABLE_NAME               ROW_COUNT
+_____________________ ____________
+ORG_UNITS                        3
+COST_CENTERS                     6
+BUDGET_PERIODS                   3
+EXPENSE_CATEGORIES               5
+BUDGET_ALLOCATIONS              51
+ACTUAL_EXPENSES                 24
+
+6 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === DUPLICATE CHECKS: PRIMARY KEYS ===
+=== DUPLICATE CHECKS: PRIMARY KEYS ===
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT ORG_UNIT_ID, COUNT(*) AS CNT
+  2  FROM ORG_UNITS
+  3  GROUP BY ORG_UNIT_ID
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT COST_CENTER_ID, COUNT(*) AS CNT
+  2  FROM COST_CENTERS
+  3  GROUP BY COST_CENTER_ID
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT PERIOD_ID, COUNT(*) AS CNT
+  2  FROM BUDGET_PERIODS
+  3  GROUP BY PERIOD_ID
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT EXPENSE_CATEGORY_ID, COUNT(*) AS CNT
+  2  FROM EXPENSE_CATEGORIES
+  3  GROUP BY EXPENSE_CATEGORY_ID
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT BUDGET_ALLOCATION_ID, COUNT(*) AS CNT
+  2  FROM BUDGET_ALLOCATIONS
+  3  GROUP BY BUDGET_ALLOCATION_ID
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT ACTUAL_EXPENSE_ID, COUNT(*) AS CNT
+  2  FROM ACTUAL_EXPENSES
+  3  GROUP BY ACTUAL_EXPENSE_ID
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === DUPLICATE CHECKS: BUSINESS KEYS ===
+=== DUPLICATE CHECKS: BUSINESS KEYS ===
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT ORG_UNIT_CODE, COUNT(*) AS CNT
+  2  FROM ORG_UNITS
+  3  GROUP BY ORG_UNIT_CODE
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT COST_CENTER_CODE, COUNT(*) AS CNT
+  2  FROM COST_CENTERS
+  3  GROUP BY COST_CENTER_CODE
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT PERIOD_CODE, COUNT(*) AS CNT
+  2  FROM BUDGET_PERIODS
+  3  GROUP BY PERIOD_CODE
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT CATEGORY_CODE, COUNT(*) AS CNT
+  2  FROM EXPENSE_CATEGORIES
+  3  GROUP BY CATEGORY_CODE
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT PERIOD_ID, COST_CENTER_ID, EXPENSE_CATEGORY_ID, BUDGET_VERSION, COUNT(*) AS CNT
+  2  FROM BUDGET_ALLOCATIONS
+  3  GROUP BY PERIOD_ID, COST_CENTER_ID, EXPENSE_CATEGORY_ID, BUDGET_VERSION
+  4  HAVING COUNT(*) > 1;
+
+
+0 rows selected.
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === ORPHAN CHECKS ===
+=== ORPHAN CHECKS ===
+16:45:00 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS ORPHAN_COST_CENTERS
+  2  FROM COST_CENTERS CC
+  3  LEFT JOIN ORG_UNITS OU
+  4    ON OU.ORG_UNIT_ID = CC.ORG_UNIT_ID
+  5  WHERE OU.ORG_UNIT_ID IS NULL;
+
+   ORPHAN_COST_CENTERS
+______________________
+                     0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS ORPHAN_BA_PERIODS
+  2  FROM BUDGET_ALLOCATIONS BA
+  3  LEFT JOIN BUDGET_PERIODS BP
+  4    ON BP.PERIOD_ID = BA.PERIOD_ID
+  5  WHERE BP.PERIOD_ID IS NULL;
+
+   ORPHAN_BA_PERIODS
+____________________
+                   0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS ORPHAN_BA_COST_CENTERS
+  2  FROM BUDGET_ALLOCATIONS BA
+  3  LEFT JOIN COST_CENTERS CC
+  4    ON CC.COST_CENTER_ID = BA.COST_CENTER_ID
+  5  WHERE CC.COST_CENTER_ID IS NULL;
+
+   ORPHAN_BA_COST_CENTERS
+_________________________
+                        0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS ORPHAN_BA_CATEGORIES
+  2  FROM BUDGET_ALLOCATIONS BA
+  3  LEFT JOIN EXPENSE_CATEGORIES EC
+  4    ON EC.EXPENSE_CATEGORY_ID = BA.EXPENSE_CATEGORY_ID
+  5  WHERE EC.EXPENSE_CATEGORY_ID IS NULL;
+
+   ORPHAN_BA_CATEGORIES
+_______________________
+                      0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS ORPHAN_AE_PERIODS
+  2  FROM ACTUAL_EXPENSES AE
+  3  LEFT JOIN BUDGET_PERIODS BP
+  4    ON BP.PERIOD_ID = AE.PERIOD_ID
+  5  WHERE BP.PERIOD_ID IS NULL;
+
+   ORPHAN_AE_PERIODS
+____________________
+                   0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS ORPHAN_AE_COST_CENTERS
+  2  FROM ACTUAL_EXPENSES AE
+  3  LEFT JOIN COST_CENTERS CC
+  4    ON CC.COST_CENTER_ID = AE.COST_CENTER_ID
+  5  WHERE CC.COST_CENTER_ID IS NULL;
+
+   ORPHAN_AE_COST_CENTERS
+_________________________
+                        0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS ORPHAN_AE_CATEGORIES
+  2  FROM ACTUAL_EXPENSES AE
+  3  LEFT JOIN EXPENSE_CATEGORIES EC
+  4    ON EC.EXPENSE_CATEGORY_ID = AE.EXPENSE_CATEGORY_ID
+  5  WHERE EC.EXPENSE_CATEGORY_ID IS NULL;
+
+   ORPHAN_AE_CATEGORIES
+_______________________
+                      0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === DOMAIN / VALUE CHECKS ===
+=== DOMAIN / VALUE CHECKS ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS INVALID_ORG_UNIT_STATUS
+  2  FROM ORG_UNITS
+  3  WHERE STATUS NOT IN ('ACTIVE', 'INACTIVE');
+
+   INVALID_ORG_UNIT_STATUS
+__________________________
+                         0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS INVALID_COST_CENTER_STATUS
+  2  FROM COST_CENTERS
+  3  WHERE STATUS NOT IN ('ACTIVE', 'INACTIVE');
+
+   INVALID_COST_CENTER_STATUS
+_____________________________
+                            0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS INVALID_PERIOD_TYPE
+  2  FROM BUDGET_PERIODS
+  3  WHERE PERIOD_TYPE NOT IN ('MONTH', 'QUARTER', 'YEAR');
+
+   INVALID_PERIOD_TYPE
+______________________
+                     0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS INVALID_PERIOD_STATUS
+  2  FROM BUDGET_PERIODS
+  3  WHERE STATUS NOT IN ('OPEN', 'CLOSED');
+
+   INVALID_PERIOD_STATUS
+________________________
+                       0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS INVALID_CATEGORY_STATUS
+  2  FROM EXPENSE_CATEGORIES
+  3  WHERE STATUS NOT IN ('ACTIVE', 'INACTIVE');
+
+   INVALID_CATEGORY_STATUS
+__________________________
+                         0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS NEGATIVE_BUDGETS
+  2  FROM BUDGET_ALLOCATIONS
+  3  WHERE BUDGET_AMOUNT < 0;
+
+   NEGATIVE_BUDGETS
+___________________
+                  0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COUNT(*) AS NEGATIVE_ACTUALS
+  2  FROM ACTUAL_EXPENSES
+  3  WHERE ACTUAL_AMOUNT < 0;
+
+   NEGATIVE_ACTUALS
+___________________
+                  0
+
+1 row selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === MASTER DATA PREVIEW ===
+=== MASTER DATA PREVIEW ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN ORG_UNIT_CODE FORMAT A15
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN ORG_UNIT_NAME FORMAT A30
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT * FROM ORG_UNITS ORDER BY ORG_UNIT_ID;
+
+   ORG_UNIT_ID ORG_UNIT_CODE    ORG_UNIT_NAME                PARENT_ORG_UNIT_ID STATUS    CREATED_AT
+______________ ________________ _________________________ _____________________ _________ ______________________
+             1 FIN              Finance Division                                ACTIVE    2026-04-05 13:32:37
+             2 IT               Information Technology                          ACTIVE    2026-04-05 13:32:37
+             3 HR               Human Resources                                 ACTIVE    2026-04-05 13:32:37
+
+3 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN COST_CENTER_CODE FORMAT A15
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN COST_CENTER_NAME FORMAT A30
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN MANAGER_NAME FORMAT A20
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT * FROM COST_CENTERS ORDER BY COST_CENTER_ID;
+
+   COST_CENTER_ID COST_CENTER_CODE    COST_CENTER_NAME               ORG_UNIT_ID MANAGER_NAME    STATUS    CREATED_AT
+_________________ ___________________ ___________________________ ______________ _______________ _________ ______________________
+              101 FIN-OPER            Finance Operations                       1 Dana Levi       ACTIVE    2026-04-05 11:56:35
+              102 FIN-CTRL            Financial Control                        1 Ronen Katz      ACTIVE    2026-04-05 11:56:35
+              201 IT-INFRA            IT Infrastructure                        2 Amit Cohen      ACTIVE    2026-04-05 11:56:35
+              202 IT-APPS             Business Applications                    2 Yael Mor        ACTIVE    2026-04-05 11:56:35
+              301 HR-OPS              HR Operations                            3 Lior Barak      ACTIVE    2026-04-05 11:56:35
+              302 HR-TRAIN            Training and Development                 3 Maya Shaham     ACTIVE    2026-04-05 11:56:35
+
+6 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN PERIOD_CODE FORMAT A10
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN PERIOD_NAME FORMAT A20
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT * FROM BUDGET_PERIODS ORDER BY PERIOD_ID;
+
+   PERIOD_ID PERIOD_CODE    PERIOD_NAME         FISCAL_YEAR    PERIOD_NUM    QUARTER_NUM START_DATE             END_DATE               PERIOD_TYPE    STATUS
+____________ ______________ ________________ ______________ _____________ ______________ ______________________ ______________________ ______________ _________
+      202601 2026-01        January 2026               2026             1              1 2026-01-01 00:00:00    2026-01-31 00:00:00    MONTH          OPEN
+      202602 2026-02        February 2026              2026             2              1 2026-02-01 00:00:00    2026-02-28 00:00:00    MONTH          OPEN
+      202603 2026-03        March 2026                 2026             3              1 2026-03-01 00:00:00    2026-03-31 00:00:00    MONTH          OPEN
+
+3 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN CATEGORY_CODE FORMAT A15
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN CATEGORY_NAME FORMAT A25
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN CATEGORY_GROUP FORMAT A15
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT * FROM EXPENSE_CATEGORIES ORDER BY EXPENSE_CATEGORY_ID;
+
+   EXPENSE_CATEGORY_ID CATEGORY_CODE    CATEGORY_NAME        CATEGORY_GROUP    STATUS
+______________________ ________________ ____________________ _________________ _________
+                     1 SALARY           Salary               PAYROLL           ACTIVE
+                     2 SOFTWARE         Software Licenses    OPEX              ACTIVE
+                     3 EQUIPMENT        Equipment            CAPEX             ACTIVE
+                     4 TRAINING         Training             OPEX              ACTIVE
+                     5 MAINT            Maintenance          OPEX              ACTIVE
+
+5 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === FACT DATA PREVIEW ===
+=== FACT DATA PREVIEW ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT *
+  2  FROM BUDGET_ALLOCATIONS
+  3  ORDER BY BUDGET_ALLOCATION_ID
+  4  FETCH FIRST 20 ROWS ONLY;
+
+   BUDGET_ALLOCATION_ID    PERIOD_ID    COST_CENTER_ID    EXPENSE_CATEGORY_ID    BUDGET_AMOUNT CURRENCY_CODE    BUDGET_VERSION    APPROVAL_STATUS    CREATED_AT
+_______________________ ____________ _________________ ______________________ ________________ ________________ _________________ __________________ ______________________
+                      1       202601               101                      1            80000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                      2       202601               101                      2            12000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                      3       202601               101                      5             6000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                      4       202601               102                      1            95000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                      5       202601               102                      2             8000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                      6       202601               102                      4             5000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                      7       202601               201                      1           120000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                      8       202601               201                      2            40000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                      9       202601               201                      3            25000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     10       202601               201                      5            18000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     11       202601               202                      1           110000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     12       202601               202                      2            30000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     13       202601               202                      4            10000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     14       202601               301                      1            70000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     15       202601               301                      4            12000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     16       202601               302                      1            50000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     17       202601               302                      4            25000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     18       202602               101                      1            80000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     19       202602               101                      2            11000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+                     20       202602               101                      5             7000 ILS              ORIGINAL          APPROVED           2026-04-05 11:56:38
+
+20 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT *
+  2  FROM ACTUAL_EXPENSES
+  3  ORDER BY ACTUAL_EXPENSE_ID
+  4  FETCH FIRST 20 ROWS ONLY;
+
+   ACTUAL_EXPENSE_ID EXPENSE_DATE              PERIOD_ID    COST_CENTER_ID    EXPENSE_CATEGORY_ID VENDOR_NAME            DESCRIPTION                     ACTUAL_AMOUNT CURRENCY_CODE    INVOICE_NUM    CREATED_AT
+____________________ ______________________ ____________ _________________ ______________________ ______________________ ____________________________ ________________ ________________ ______________ ______________________
+                   1 2026-01-08 00:00:00          202601               101                      1 Payroll Provider       January salary posting                  79000 ILS              INV-1001       2026-04-05 11:56:40
+                   2 2026-01-12 00:00:00          202601               101                      2 Oracle                 Finance software support                12500 ILS              INV-1002       2026-04-05 11:56:40
+                   3 2026-01-20 00:00:00          202601               102                      1 Payroll Provider       January salary posting                  96000 ILS              INV-1003       2026-04-05 11:56:40
+                   4 2026-01-15 00:00:00          202601               201                      2 Microsoft              Cloud subscription                      42000 ILS              INV-1004       2026-04-05 11:56:40
+                   5 2026-01-18 00:00:00          202601               201                      3 Dell                   Server equipment                        27000 ILS              INV-1005       2026-04-05 11:56:40
+                   6 2026-01-22 00:00:00          202601               202                      4 Udemy Business         Application team training                8500 ILS              INV-1006       2026-04-05 11:56:40
+                   7 2026-01-14 00:00:00          202601               301                      1 Payroll Provider       January salary posting                  70500 ILS              INV-1007       2026-04-05 11:56:40
+                   8 2026-01-27 00:00:00          202601               302                      4 External Trainer       Leadership workshop                     29000 ILS              INV-1008       2026-04-05 11:56:40
+                   9 2026-02-09 00:00:00          202602               101                      1 Payroll Provider       February salary posting                 80500 ILS              INV-2001       2026-04-05 11:56:40
+                  10 2026-02-13 00:00:00          202602               101                      5 Local Vendor           Printer maintenance                      6200 ILS              INV-2002       2026-04-05 11:56:40
+                  11 2026-02-16 00:00:00          202602               102                      4 External Consultant    Finance training                         4800 ILS              INV-2003       2026-04-05 11:56:40
+                  12 2026-02-11 00:00:00          202602               201                      1 Payroll Provider       February salary posting                121000 ILS              INV-2004       2026-04-05 11:56:40
+                  13 2026-02-17 00:00:00          202602               201                      2 Oracle                 Database licenses                       47000 ILS              INV-2005       2026-04-05 11:56:40
+                  14 2026-02-21 00:00:00          202602               201                      5 HP                     Hardware maintenance                    18500 ILS              INV-2006       2026-04-05 11:56:40
+                  15 2026-02-18 00:00:00          202602               202                      2 Atlassian              Software subscriptions                  31500 ILS              INV-2007       2026-04-05 11:56:40
+                  16 2026-02-24 00:00:00          202602               301                      1 Payroll Provider       February salary posting                 69800 ILS              INV-2008       2026-04-05 11:56:40
+                  17 2026-02-25 00:00:00          202602               302                      4 External Trainer       Employee training camp                  32000 ILS              INV-2009       2026-04-05 11:56:40
+                  18 2026-03-07 00:00:00          202603               101                      2 Oracle                 Finance software support                11800 ILS              INV-3001       2026-04-05 11:56:40
+                  19 2026-03-10 00:00:00          202603               102                      1 Payroll Provider       March salary posting                    94500 ILS              INV-3002       2026-04-05 11:56:40
+                  20 2026-03-12 00:00:00          202603               201                      2 Microsoft              Azure subscription                      51500 ILS              INV-3003       2026-04-05 11:56:40
+
+20 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === RELATIONSHIP CHECK ===
+=== RELATIONSHIP CHECK ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN ORG_UNIT_NAME FORMAT A30
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT CC.COST_CENTER_CODE,
+  2         CC.COST_CENTER_NAME,
+  3         OU.ORG_UNIT_NAME
+  4  FROM COST_CENTERS CC
+  5  JOIN ORG_UNITS OU
+  6    ON OU.ORG_UNIT_ID = CC.ORG_UNIT_ID
+  7  ORDER BY CC.COST_CENTER_CODE;
+
+COST_CENTER_CODE    COST_CENTER_NAME            ORG_UNIT_NAME
+___________________ ___________________________ _________________________
+FIN-CTRL            Financial Control           Finance Division
+FIN-OPER            Finance Operations          Finance Division
+HR-OPS              HR Operations               Human Resources
+HR-TRAIN            Training and Development    Human Resources
+IT-APPS             Business Applications       Information Technology
+IT-INFRA            IT Infrastructure           Information Technology
+
+6 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === VIEW PREVIEW ===
+=== VIEW PREVIEW ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN PERIOD_NAME FORMAT A20
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN COST_CENTER_NAME FORMAT A30
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN CATEGORY_NAME FORMAT A25
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT *
+  2  FROM VW_BUDGET_VS_ACTUAL
+  3  ORDER BY PERIOD_CODE, ORG_UNIT_NAME, COST_CENTER_NAME, CATEGORY_NAME
+  4  FETCH FIRST 30 ROWS ONLY;
+
+   FISCAL_YEAR    QUARTER_NUM    PERIOD_NUM PERIOD_CODE    PERIOD_NAME      ORG_UNIT_CODE    ORG_UNIT_NAME             COST_CENTER_CODE    COST_CENTER_NAME            CATEGORY_CODE    CATEGORY_NAME           BUDGET_AMOUNT    ACTUAL_AMOUNT    VARIANCE_AMOUNT
+______________ ______________ _____________ ______________ ________________ ________________ _________________________ ___________________ ___________________________ ________________ ____________________ ________________ ________________ __________________
+          2026              1             1 2026-01        January 2026     FIN              Finance Division          FIN-OPER            Finance Operations          MAINT            Maintenance                      6000                0               6000
+          2026              1             1 2026-01        January 2026     FIN              Finance Division          FIN-OPER            Finance Operations          SALARY           Salary                          80000            79000               1000
+          2026              1             1 2026-01        January 2026     FIN              Finance Division          FIN-OPER            Finance Operations          SOFTWARE         Software Licenses               12000            12500               -500
+          2026              1             1 2026-01        January 2026     FIN              Finance Division          FIN-CTRL            Financial Control           SALARY           Salary                          95000            96000              -1000
+          2026              1             1 2026-01        January 2026     FIN              Finance Division          FIN-CTRL            Financial Control           SOFTWARE         Software Licenses                8000                0               8000
+          2026              1             1 2026-01        January 2026     FIN              Finance Division          FIN-CTRL            Financial Control           TRAINING         Training                         5000                0               5000
+          2026              1             1 2026-01        January 2026     HR               Human Resources           HR-OPS              HR Operations               SALARY           Salary                          70000            70500               -500
+          2026              1             1 2026-01        January 2026     HR               Human Resources           HR-OPS              HR Operations               TRAINING         Training                        12000                0              12000
+          2026              1             1 2026-01        January 2026     HR               Human Resources           HR-TRAIN            Training and Development    SALARY           Salary                          50000                0              50000
+          2026              1             1 2026-01        January 2026     HR               Human Resources           HR-TRAIN            Training and Development    TRAINING         Training                        25000            29000              -4000
+          2026              1             1 2026-01        January 2026     IT               Information Technology    IT-APPS             Business Applications       SALARY           Salary                         110000                0             110000
+          2026              1             1 2026-01        January 2026     IT               Information Technology    IT-APPS             Business Applications       SOFTWARE         Software Licenses               30000                0              30000
+          2026              1             1 2026-01        January 2026     IT               Information Technology    IT-APPS             Business Applications       TRAINING         Training                        10000             8500               1500
+          2026              1             1 2026-01        January 2026     IT               Information Technology    IT-INFRA            IT Infrastructure           EQUIPMENT        Equipment                       25000            27000              -2000
+          2026              1             1 2026-01        January 2026     IT               Information Technology    IT-INFRA            IT Infrastructure           MAINT            Maintenance                     18000                0              18000
+          2026              1             1 2026-01        January 2026     IT               Information Technology    IT-INFRA            IT Infrastructure           SALARY           Salary                         120000                0             120000
+          2026              1             1 2026-01        January 2026     IT               Information Technology    IT-INFRA            IT Infrastructure           SOFTWARE         Software Licenses               40000            42000              -2000
+          2026              1             2 2026-02        February 2026    FIN              Finance Division          FIN-OPER            Finance Operations          MAINT            Maintenance                      7000             6200                800
+          2026              1             2 2026-02        February 2026    FIN              Finance Division          FIN-OPER            Finance Operations          SALARY           Salary                          80000            80500               -500
+          2026              1             2 2026-02        February 2026    FIN              Finance Division          FIN-OPER            Finance Operations          SOFTWARE         Software Licenses               11000                0              11000
+          2026              1             2 2026-02        February 2026    FIN              Finance Division          FIN-CTRL            Financial Control           SALARY           Salary                          95000                0              95000
+          2026              1             2 2026-02        February 2026    FIN              Finance Division          FIN-CTRL            Financial Control           SOFTWARE         Software Licenses                8500                0               8500
+          2026              1             2 2026-02        February 2026    FIN              Finance Division          FIN-CTRL            Financial Control           TRAINING         Training                         4500             4800               -300
+          2026              1             2 2026-02        February 2026    HR               Human Resources           HR-OPS              HR Operations               SALARY           Salary                          70000            69800                200
+          2026              1             2 2026-02        February 2026    HR               Human Resources           HR-OPS              HR Operations               TRAINING         Training                        10000                0              10000
+          2026              1             2 2026-02        February 2026    HR               Human Resources           HR-TRAIN            Training and Development    SALARY           Salary                          50000                0              50000
+          2026              1             2 2026-02        February 2026    HR               Human Resources           HR-TRAIN            Training and Development    TRAINING         Training                        30000            32000              -2000
+          2026              1             2 2026-02        February 2026    IT               Information Technology    IT-APPS             Business Applications       SALARY           Salary                         110000                0             110000
+          2026              1             2 2026-02        February 2026    IT               Information Technology    IT-APPS             Business Applications       SOFTWARE         Software Licenses               32000            31500                500
+          2026              1             2 2026-02        February 2026    IT               Information Technology    IT-APPS             Business Applications       TRAINING         Training                         9000                0               9000
+
+30 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === BASELINE QUERY 1: BUDGET VS ACTUAL BY ORG UNIT ===
+=== BASELINE QUERY 1: BUDGET VS ACTUAL BY ORG UNIT ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT ORG_UNIT_NAME,
+  2         SUM(BUDGET_AMOUNT) AS TOTAL_BUDGET,
+  3         SUM(ACTUAL_AMOUNT) AS TOTAL_ACTUAL,
+  4         SUM(VARIANCE_AMOUNT) AS TOTAL_VARIANCE
+  5  FROM VW_BUDGET_VS_ACTUAL
+  6  GROUP BY ORG_UNIT_NAME
+  7  ORDER BY ORG_UNIT_NAME;
+
+ORG_UNIT_NAME                TOTAL_BUDGET    TOTAL_ACTUAL    TOTAL_VARIANCE
+_________________________ _______________ _______________ _________________
+Finance Division                   617000          385300            231700
+Human Resources                    474000          237200            236800
+Information Technology            1059000          378500            680500
+
+3 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === BASELINE QUERY 2: OVER BUDGET CASES ===
+=== BASELINE QUERY 2: OVER BUDGET CASES ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT PERIOD_CODE,
+  2         ORG_UNIT_NAME,
+  3         COST_CENTER_NAME,
+  4         CATEGORY_NAME,
+  5         BUDGET_AMOUNT,
+  6         ACTUAL_AMOUNT,
+  7         VARIANCE_AMOUNT
+  8  FROM VW_BUDGET_VS_ACTUAL
+  9  WHERE ACTUAL_AMOUNT > BUDGET_AMOUNT
+ 10  ORDER BY PERIOD_CODE, ORG_UNIT_NAME, COST_CENTER_NAME, CATEGORY_NAME;
+
+PERIOD_CODE    ORG_UNIT_NAME             COST_CENTER_NAME            CATEGORY_NAME           BUDGET_AMOUNT    ACTUAL_AMOUNT    VARIANCE_AMOUNT
+______________ _________________________ ___________________________ ____________________ ________________ ________________ __________________
+2026-01        Finance Division          Finance Operations          Software Licenses               12000            12500               -500
+2026-01        Finance Division          Financial Control           Salary                          95000            96000              -1000
+2026-01        Human Resources           HR Operations               Salary                          70000            70500               -500
+2026-01        Human Resources           Training and Development    Training                        25000            29000              -4000
+2026-01        Information Technology    IT Infrastructure           Equipment                       25000            27000              -2000
+2026-01        Information Technology    IT Infrastructure           Software Licenses               40000            42000              -2000
+2026-02        Finance Division          Finance Operations          Salary                          80000            80500               -500
+2026-02        Finance Division          Financial Control           Training                         4500             4800               -300
+2026-02        Human Resources           Training and Development    Training                        30000            32000              -2000
+2026-02        Information Technology    IT Infrastructure           Salary                         120000           121000              -1000
+2026-02        Information Technology    IT Infrastructure           Software Licenses               45000            47000              -2000
+2026-03        Information Technology    Business Applications       Training                        11000            12000              -1000
+2026-03        Information Technology    IT Infrastructure           Software Licenses               50000            51500              -1500
+
+13 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === BASELINE QUERY 3: BUDGET VS ACTUAL BY PERIOD ===
+=== BASELINE QUERY 3: BUDGET VS ACTUAL BY PERIOD ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT PERIOD_CODE,
+  2         SUM(BUDGET_AMOUNT) AS TOTAL_BUDGET,
+  3         SUM(ACTUAL_AMOUNT) AS TOTAL_ACTUAL,
+  4         SUM(VARIANCE_AMOUNT) AS TOTAL_VARIANCE
+  5  FROM VW_BUDGET_VS_ACTUAL
+  6  GROUP BY PERIOD_CODE
+  7  ORDER BY PERIOD_CODE;
+
+PERIOD_CODE       TOTAL_BUDGET    TOTAL_ACTUAL    TOTAL_VARIANCE
+______________ _______________ _______________ _________________
+2026-01                 716000          364500            351500
+2026-02                 717000          411300            305700
+2026-03                 717000          225200            491800
+
+3 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === BASELINE QUERY 4: BUDGET VS ACTUAL BY COST CENTER ===
+=== BASELINE QUERY 4: BUDGET VS ACTUAL BY COST CENTER ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT COST_CENTER_CODE,
+  2         COST_CENTER_NAME,
+  3         SUM(BUDGET_AMOUNT) AS TOTAL_BUDGET,
+  4         SUM(ACTUAL_AMOUNT) AS TOTAL_ACTUAL,
+  5         SUM(VARIANCE_AMOUNT) AS TOTAL_VARIANCE
+  6  FROM VW_BUDGET_VS_ACTUAL
+  7  GROUP BY COST_CENTER_CODE, COST_CENTER_NAME
+  8  ORDER BY COST_CENTER_CODE;
+
+COST_CENTER_CODE    COST_CENTER_NAME               TOTAL_BUDGET    TOTAL_ACTUAL    TOTAL_VARIANCE
+___________________ ___________________________ _______________ _______________ _________________
+FIN-CTRL            Financial Control                    322000          195300            126700
+FIN-OPER            Finance Operations                   295000          190000            105000
+HR-OPS              HR Operations                        241000          148700             92300
+HR-TRAIN            Training and Development             233000           88500            144500
+IT-APPS             Business Applications                450000           52000            398000
+IT-INFRA            IT Infrastructure                    609000          326500            282500
+
+6 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === BASELINE QUERY 5: BUDGET VS ACTUAL BY CATEGORY ===
+=== BASELINE QUERY 5: BUDGET VS ACTUAL BY CATEGORY ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT CATEGORY_NAME,
+  2         SUM(BUDGET_AMOUNT) AS TOTAL_BUDGET,
+  3         SUM(ACTUAL_AMOUNT) AS TOTAL_ACTUAL,
+  4         SUM(VARIANCE_AMOUNT) AS TOTAL_VARIANCE
+  5  FROM VW_BUDGET_VS_ACTUAL
+  6  GROUP BY CATEGORY_NAME
+  7  ORDER BY CATEGORY_NAME;
+
+CATEGORY_NAME           TOTAL_BUDGET    TOTAL_ACTUAL    TOTAL_VARIANCE
+____________________ _______________ _______________ _________________
+Equipment                      60000           46500             13500
+Maintenance                    73000           24700             48300
+Salary                       1575000          611300            963700
+Software Licenses             284500          196300             88200
+Training                      157500          122200             35300
+
+5 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT === COMMENTS / METADATA CHECK ===
+=== COMMENTS / METADATA CHECK ===
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN TABLE_NAME FORMAT A25
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN COLUMN_NAME FORMAT A25
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> COLUMN COMMENTS FORMAT A80
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SELECT owner, table_name, comments
+  2  FROM all_tab_comments
+  3  WHERE owner = 'BUDGET'
+  4    AND table_name IN (
+  5      'ORG_UNITS',
+  6      'COST_CENTERS',
+  7      'BUDGET_PERIODS',
+  8      'EXPENSE_CATEGORIES',
+  9      'BUDGET_ALLOCATIONS',
+ 10      'ACTUAL_EXPENSES'
+ 11    )
+ 12  ORDER BY table_name;
+
+OWNER     TABLE_NAME            COMMENTS
+_________ _____________________ _________________________________________________________________________________________
+BUDGET    ACTUAL_EXPENSES       Actual expense transactions posted by date, period, cost center, and expense category.
+BUDGET    BUDGET_ALLOCATIONS    Approved budget allocation by period, cost center, and expense category.
+BUDGET    BUDGET_PERIODS        Budget reporting periods used for budget and actual analysis.
+BUDGET    COST_CENTERS          Cost centers that belong to organizational units.
+BUDGET    EXPENSE_CATEGORIES    Expense categories used for budget and actual postings.
+BUDGET    ORG_UNITS             Organizational units such as Finance, IT, and HR.
+
+6 rows selected.
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT
+
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT =========================================================
+=========================================================
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT END OF VALIDATION
+END OF VALIDATION
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT OUTPUT WRITTEN TO 10_DATA_VALIDATION_AND_BASELINE.log
+OUTPUT WRITTEN TO 10_DATA_VALIDATION_AND_BASELINE.log
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> PROMPT =========================================================
+=========================================================
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1>
+16:45:01 SYSTEM@//localhost:1521/FREEPDB1> SPOOL OFF

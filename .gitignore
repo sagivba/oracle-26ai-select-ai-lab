@@ -1,0 +1,41 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Logs
+*.log
+
+# Environment / secrets
+.env
+.env.*
+secrets/
+wallet/
+*.pem
+*.key
+
+# Oracle / SQLcl generated
+*.lst
+*.csv
+*.html
+*.zip
+
+# Local output
+output/*
+!output/.gitkeep
+
+# Data dumps / backups
+*.dmp
+*.expdp
+*.bak
+backups/
+scripts/backups
