@@ -1,0 +1,150 @@
+-- 21_VERIFY_DBMS_CLOUD_INSTALL.sql
+--
+-- Purpose:
+--   Verify DBMS_CLOUD / DBMS_CLOUD_AI installation status
+--   after running dbms_cloud_install.sql.
+--
+-- Recommended execution:
+--   sql / as sysdba
+--   @21_VERIFY_DBMS_CLOUD_INSTALL.sql
+--
+-- Notes:
+--   1. Run as SYSDBA.
+--   2. The script checks both CDB root and FREEPDB1.
+--   3. It focuses on DBMS_CLOUD family objects and the install owner.
+
+SET FEEDBACK ON
+SET VERIFY OFF
+SET PAGESIZE 200
+SET LINESIZE 220
+SET TRIMSPOOL ON
+SET SERVEROUTPUT ON
+
+PROMPT
+PROMPT =========================================================
+PROMPT 21_VERIFY_DBMS_CLOUD_INSTALL.sql
+PROMPT Verify DBMS_CLOUD installation status
+PROMPT =========================================================
+PROMPT
+
+COLUMN NAME               FORMAT A30
+COLUMN OPEN_MODE          FORMAT A18
+COLUMN USERNAME           FORMAT A30
+COLUMN ACCOUNT_STATUS     FORMAT A20
+COLUMN COMMON             FORMAT A6
+COLUMN OWNER              FORMAT A25
+COLUMN OBJECT_NAME        FORMAT A35
+COLUMN OBJECT_TYPE        FORMAT A22
+COLUMN STATUS             FORMAT A10
+COLUMN SHARING            FORMAT A18
+COLUMN ORACLE_MAINTAINED  FORMAT A5
+COLUMN COMP_ID            FORMAT A12
+COLUMN COMP_NAME          FORMAT A40
+COLUMN VERSION            FORMAT A15
+
+PROMPT [1] Current container
+SHOW CON_NAME
+
+PROMPT
+PROMPT [2] Open PDBs
+SELECT NAME, OPEN_MODE
+FROM   V$PDBS
+ORDER  BY CON_ID;
+
+PROMPT
+PROMPT [3] Verify install owner in CDB
+SELECT USERNAME,
+       ACCOUNT_STATUS,
+       COMMON
+FROM   CDB_USERS
+WHERE  USERNAME = 'C##CLOUD$SERVICE'
+ORDER  BY USERNAME;
+
+PROMPT
+PROMPT [4] DBMS_CLOUD family objects across the CDB
+SELECT CON_ID,
+       OWNER,
+       OBJECT_NAME,
+       OBJECT_TYPE,
+       STATUS,
+       SHARING,
+       ORACLE_MAINTAINED
+FROM   CDB_OBJECTS
+WHERE  OBJECT_NAME LIKE 'DBMS_CLOUD%'
+ORDER  BY CON_ID, OWNER, OBJECT_NAME, OBJECT_TYPE;
+
+PROMPT
+PROMPT [5] Invalid objects for install owner across the CDB
+SELECT CON_ID,
+       OWNER,
+       OBJECT_NAME,
+       OBJECT_TYPE,
+       STATUS
+FROM   CDB_OBJECTS
+WHERE  OWNER = 'C##CLOUD$SERVICE'
+AND    STATUS <> 'VALID'
+ORDER  BY CON_ID, OBJECT_TYPE, OBJECT_NAME;
+
+PROMPT
+PROMPT [6] Optional registry view (if populated in this environment)
+SELECT COMP_ID,
+       COMP_NAME,
+       VERSION,
+       STATUS
+FROM   DBA_REGISTRY
+WHERE  UPPER(COMP_NAME) LIKE '%CLOUD%'
+   OR  UPPER(COMP_ID)   LIKE '%CLOUD%'
+ORDER  BY COMP_ID;
+
+PROMPT
+PROMPT [7] Switch to FREEPDB1
+ALTER SESSION SET CONTAINER = FREEPDB1;
+
+PROMPT
+PROMPT [8] Current container after switch
+SHOW CON_NAME
+
+PROMPT
+PROMPT [9] DBMS_CLOUD family objects in FREEPDB1
+SELECT OWNER,
+       OBJECT_NAME,
+       OBJECT_TYPE,
+       STATUS,
+       SHARING,
+       ORACLE_MAINTAINED
+FROM   DBA_OBJECTS
+WHERE  OBJECT_NAME LIKE 'DBMS_CLOUD%'
+ORDER  BY OWNER, OBJECT_NAME, OBJECT_TYPE;
+
+PROMPT
+PROMPT [10] Invalid DBMS_CLOUD family objects in FREEPDB1
+SELECT OWNER,
+       OBJECT_NAME,
+       OBJECT_TYPE,
+       STATUS
+FROM   DBA_OBJECTS
+WHERE  OBJECT_NAME LIKE 'DBMS_CLOUD%'
+AND    STATUS <> 'VALID'
+ORDER  BY OWNER, OBJECT_NAME, OBJECT_TYPE;
+
+PROMPT
+PROMPT [11] Invalid objects for install owner in FREEPDB1
+SELECT OWNER,
+       OBJECT_NAME,
+       OBJECT_TYPE,
+       STATUS
+FROM   DBA_OBJECTS
+WHERE  OWNER = 'C##CLOUD$SERVICE'
+AND    STATUS <> 'VALID'
+ORDER  BY OBJECT_TYPE, OBJECT_NAME;
+
+PROMPT
+PROMPT =========================================================
+PROMPT Verification completed.
+PROMPT Review:
+PROMPT - C##CLOUD$SERVICE exists and COMMON = YES
+PROMPT - DBMS_CLOUD% objects exist
+PROMPT - Status should be VALID
+PROMPT - FREEPDB1 should show the expected objects
+PROMPT =========================================================
+PROMPT
